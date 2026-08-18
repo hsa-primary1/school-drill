@@ -817,15 +817,15 @@ const handleLogout = async () => {
   };
 
   return (
-    <main className="p-10">
-{userRole === "admin" && (
+    <main className="min-h-screen p-4 md:p-10 max-w-7xl mx-auto">
+{(userRole === "admin" || userRole === "support") && (
   <div className="border rounded-lg p-5 mb-6 bg-white shadow">
 
     <h2 className="text-2xl font-bold mb-4">
       Staff Status
     </h2>
 
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
 
       <div className="border rounded p-4">
         <div className="text-gray-500">
@@ -866,7 +866,7 @@ const handleLogout = async () => {
     My Status
   </h2>
 
-  <div className="flex items-center gap-3 mb-4">
+  <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-3">
     <span className="font-semibold">
       Status:
     </span>
@@ -876,7 +876,7 @@ const handleLogout = async () => {
         onClick={() =>
           updateMyStatus("absent")
         }
-        className="bg-red-500 text-white px-4 py-2 rounded"
+        className="w-full sm:w-auto bg-green-500 text-white px-4 py-3 rounded-lg"
       >
         Absent
       </button>
@@ -896,7 +896,7 @@ const handleLogout = async () => {
     </span>
   </div>
 
-  <div className="flex items-center gap-3">
+  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
     <span className="font-semibold">
       Location:
     </span>
@@ -906,7 +906,7 @@ const handleLogout = async () => {
       onChange={(e) =>
         updateMyLocation(e.target.value)
       }
-      className="border p-2 rounded"
+      className="border p-2 rounded w-full sm:w-auto"
     >
       <option value="Classroom">
         Classroom
@@ -931,7 +931,7 @@ const handleLogout = async () => {
   </div>
 </div>
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
         <h1 className="text-4xl font-bold">
           Students
         </h1>
@@ -943,11 +943,11 @@ const handleLogout = async () => {
       !activeDrill ||
       activeDrill.status !== "active"
     }
-    className={`px-4 py-2 rounded text-white ${
-      activeDrill?.status === "active"
-        ? "bg-green-600"
-        : "bg-gray-400"
-    }`}
+    className={`w-full md:w-auto px-4 py-3 rounded text-white ${
+  activeDrill?.status === "active"
+    ? "bg-green-600"
+    : "bg-gray-400"
+}`}
   >
     Submit Attendance
   </button>
@@ -955,7 +955,7 @@ const handleLogout = async () => {
 
 <button
   onClick={handleLogout}
-  className="bg-red-500 text-white px-4 py-2 rounded"
+  className="w-full sm:w-auto bg-green-500 text-white px-4 py-3 rounded-lg"
 >
   Logout
 </button>      </div>
@@ -967,7 +967,7 @@ const handleLogout = async () => {
 </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mt-6 mb-6">
+     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-6 mb-6">
         <div className="border p-3 mb-2 rounded">
           <div>Total</div>
           <div className="text-2xl font-bold">
@@ -1004,7 +1004,7 @@ const handleLogout = async () => {
 
     <button
       onClick={handleCsvRead}
-      className="ml-3 bg-green-600 text-white px-4 py-2 rounded"
+      className="w-full sm:w-auto bg-green-500 text-white px-4 py-3 rounded-lg"
     >
       Read CSV
     </button>
@@ -1042,7 +1042,7 @@ const handleLogout = async () => {
       onChange={(e) =>
         setSearchTerm(e.target.value)
       }
-      className="border p-2 rounded w-full"
+      className="border p-3 rounded w-full text-base"
     />
   </div>
 )}
@@ -1182,15 +1182,16 @@ const handleLogout = async () => {
         {filteredStudents.map((student) => (
           <div
             key={student.id}
-            className="border p-4 mb-3 rounded"
+            className="border p-4 mb-3 rounded-lg shadow-sm overflow-hidden"
           >
-            <div className="font-bold inline">
-              {student.firstName}{" "}
-              {student.lastName}
-            </div>
-<span className="ml-4">
+            <div className="font-bold">
+  {student.firstName} {student.lastName}
+</div>
+
+<div className="text-sm text-gray-600 mt-1">
   Homeroom: {student.homeroom}
-</span>
+</div>
+
 
             <div className="mt-3 flex items-center gap-3 flex-wrap">
 
@@ -1202,7 +1203,7 @@ const handleLogout = async () => {
         "absent"
       )
     }
-    className="bg-red-500 text-white px-3 py-1 rounded"
+    className="w-full sm:w-auto bg-green-500 text-white px-4 py-3 rounded-lg"
   >
     Absent
   </button>
@@ -1214,7 +1215,7 @@ const handleLogout = async () => {
         "present"
       )
     }
-    className="bg-green-500 text-white px-3 py-1 rounded"
+    className="w-full sm:w-auto bg-green-500 text-white px-4 py-3 rounded-lg"
   >
     Present
   </button>
