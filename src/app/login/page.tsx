@@ -26,14 +26,16 @@ const router = useRouter();
     }
   };
 
-  return (
-    <main className="max-w-md mx-auto mt-20">
-      <h1 className="text-3xl font-bold mb-6">
+ return (
+  <main className="min-h-screen flex items-center justify-center px-4 py-8">
+    <div className="w-full max-w-md">
+      
+      <h1 className="text-3xl font-bold mb-6 text-center">
         School Drill Login
       </h1>
 
       <input
-        className="border p-2 w-full mb-3"
+        className="w-full box-border border p-3 mb-3 rounded"
         type="email"
         placeholder="Email"
         value={email}
@@ -41,7 +43,7 @@ const router = useRouter();
       />
 
       <input
-        className="border p-2 w-full mb-3"
+        className="w-full box-border border p-3 mb-3 rounded"
         type="password"
         placeholder="Password"
         value={password}
@@ -49,17 +51,20 @@ const router = useRouter();
       />
 
       <button
-        className="bg-black text-white px-4 py-2 rounded"
+        className="w-full bg-black text-white px-4 py-3 rounded"
         onClick={handleLogin}
       >
         Login
       </button>
 
       {error && (
-        <p className="text-red-500 mt-3">
+        <p className="text-red-500 mt-3 text-center">
           {error}
         </p>
       )}
-    </main>
-  );
+
+    </div>
+  </main>
+);
+ 
 }

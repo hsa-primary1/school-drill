@@ -468,9 +468,10 @@ useEffect(() => {
 }, [userRole]);
 
   const updateStatus = async (
-    studentId: string,
-    status: string
-  ) => {
+  studentId: string,
+  status: string
+) => {
+  try {
     const studentRef = doc(
       db,
       "students",
@@ -478,11 +479,31 @@ useEffect(() => {
     );
 
     await updateDoc(studentRef, {
-      status,
+      status: status,
     });
 
-    loadStudents();
-  };
+    setStudents((currentStudents) =>
+      currentStudents.map((student) =>
+        student.id === studentId
+          ? {
+              ...student,
+              status: status,
+            }
+          : student
+      )
+    );
+
+  } catch (error) {
+    console.error(
+      "Update student status error:",
+      error
+    );
+
+    alert(
+      "Could not update student status."
+    );
+  }
+};
   const handleCsvRead = () => {
     if (!file) return;
 
@@ -871,32 +892,28 @@ const handleLogout = async () => {
       Status:
     </span>
 
-    {myStatus === "present" ? (
-      <button
-        onClick={() =>
-          updateMyStatus("absent")
-        }
-        className="w-full sm:w-auto bg-green-500 text-white px-4 py-3 rounded-lg"
-      >
-        Absent
-      </button>
-    ) : (
-      <button
-        onClick={() =>
-          updateMyStatus("present")
-        }
-        className="bg-green-500 text-white px-4 py-2 rounded"
-      >
-        Present
-      </button>
-    )}
+  {myStatus === "present" ? (
+  <button
+    onClick={() => updateMyStatus("absent")}
+    className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg"
+  >
+    Absent
+  </button>
+) : (
+  <button
+    onClick={() => updateMyStatus("present")}
+    className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg"
+  >
+    Present
+  </button>
+)}
 
-    <span className="font-medium">
-      {myStatus}
-    </span>
+<span className="font-medium">
+  {myStatus}
+</span>
   </div>
 
-  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+  <div className="relative">
     <span className="font-semibold">
       Location:
     </span>
@@ -953,12 +970,14 @@ const handleLogout = async () => {
   </button>
 )}
 
-<button
-  onClick={handleLogout}
-  className="w-full sm:w-auto bg-green-500 text-white px-4 py-3 rounded-lg"
->
-  Logout
-</button>      </div>
+<div className="absolute top-0 right-0">
+  <button
+    onClick={handleLogout}
+    className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-md"
+  >
+    Logout
+  </button>
+</div>
 
       <div className="mt-4">
       
@@ -966,6 +985,7 @@ const handleLogout = async () => {
   Current User: {auth.currentUser?.email}
 </div>
       </div>
+</div>
 
      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-6 mb-6">
         <div className="border p-3 mb-2 rounded">
@@ -990,6 +1010,8 @@ const handleLogout = async () => {
         </div>
 
         
+            </div>
+
       {userRole === "admin" && (
   <div className="mb-6">
     <input
@@ -1105,9 +1127,7 @@ const handleLogout = async () => {
 >
   End Drill
 </button>    
-    <div className="mb-3 font-semibold">
-      Completed: {submittedClasses.length} / {classes.filter(c => c !== "All").length}
-    </div>
+    
 
     {/* Start Drill ve End Drill butonları */}
 
@@ -1146,9 +1166,9 @@ const handleLogout = async () => {
           </div>
         ))}
     </div>
-  </div>
+ </div>
 )}
-  </div>
+  
 {activeDrill?.status === "active" && (
   <div className="bg-red-600 text-white p-4 rounded mb-6">
     <div className="text-xl font-bold">
@@ -1179,119 +1199,99 @@ const handleLogout = async () => {
   </div>
 )}
       <div className="mt-8">
-        {filteredStudents.map((student) => (
-          <div
-            key={student.id}
-            className="border p-4 mb-3 rounded-lg shadow-sm overflow-hidden"
-          >
-            <div className="font-bold">
-  {student.firstName} {student.lastName}
-</div>
+  {filteredStudents.map((student) => (
+    <div
+      key={student.id}
+      className="border p-4 mb-3 rounded-lg shadow-sm overflow-hidden"
+    >
+      
+      <div className="font-bold">
+        {student.firstName} {student.lastName}
+      </div>
 
-<div className="text-sm text-gray-600 mt-1">
-  Homeroom: {student.homeroom}
-</div>
+      <div className="text-sm text-gray-600 mt-1">
+        Homeroom: {student.homeroom}
+      </div>
 
+      <div className="mt-3 flex items-center gap-3 flex-wrap">
 
-            <div className="mt-3 flex items-center gap-3 flex-wrap">
-
- {student.status === "present" ? (
+        {student.status === "present" ? (
   <button
-    onClick={() =>
-      updateStatus(
-        student.id,
-        "absent"
-      )
-    }
-    className="w-full sm:w-auto bg-green-500 text-white px-4 py-3 rounded-lg"
+    onClick={() => updateStatus(student.id, "absent")}
+    style={{
+      backgroundColor: "#22c55e",
+      color: "white",
+    }}
+    className="w-full sm:w-auto px-4 py-3 rounded-lg"
   >
     Absent
   </button>
 ) : (
   <button
-    onClick={() =>
-      updateStatus(
-        student.id,
-        "present"
-      )
-    }
-    className="w-full sm:w-auto bg-green-500 text-white px-4 py-3 rounded-lg"
+    onClick={() => updateStatus(student.id, "present")}
+    style={{
+      backgroundColor: "#ef4444",
+      color: "white",
+    }}
+    className="w-full sm:w-auto px-4 py-3 rounded-lg"
   >
     Present
   </button>
 )}
 
-  
-
-  <div className="font-semibold">
-    Status:
-    {" "}
-    {student.status}
-  </div>
-
-
-  <div className="flex items-center gap-2">
-
-    <span>
-      Location:
-    </span>
-
-
-    <select
-      value={student.location || "Classroom"}
-      onChange={async (e) => {
-
-        const studentRef = doc(
-          db,
-          "students",
-          student.id
-        );
-
-
-        await updateDoc(
-          studentRef,
-          {
-            location:e.target.value,
-          }
-        );
-
-
-        loadStudents();
-
-      }}
-      className="border p-1 rounded"
-    >
-
-      <option value="Classroom">
-        Classroom
-      </option>
-
-      <option value="Hallway">
-        Hallway
-      </option>
-
-      <option value="Back Playground">
-        Back Playground
-      </option>
-
-      <option value="Front Grass">     
-       Front Grass
-      </option>    
-
-      <option value="Off Campus">
-        Off Campus
-      </option>
-
-
-    </select>
-
-  </div>
-
-
+<div className="font-semibold">
+  Status: {student.status}
 </div>
-          </div>
-        ))}
+<div className="font-semibold">         
+ Status: {student.status}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span>Location:</span>
+
+          <select
+            value={student.location || "Classroom"}
+            onChange={async (e) => {
+              const studentRef = doc(
+                db,
+                "students",
+                student.id
+              );
+
+              await updateDoc(studentRef, {
+                location: e.target.value,
+              });
+
+              loadStudents();
+            }}
+            className="border p-1 rounded"
+          >
+            <option value="Classroom">
+              Classroom
+            </option>
+
+            <option value="Hallway">
+              Hallway
+            </option>
+
+            <option value="Back Playground">
+              Back Playground
+            </option>
+
+            <option value="Front Grass">
+              Front Grass
+            </option>
+
+            <option value="Off Campus">
+              Off Campus
+            </option>
+          </select>
+        </div>
+
       </div>
-    </main>
+    </div>
+  ))}
+</div>
+</main>
   );
 }
