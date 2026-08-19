@@ -839,9 +839,9 @@ const handleLogout = async () => {
 
   return (
     <main className="min-h-screen p-4 md:p-10 max-w-7xl mx-auto">
-{(userRole === "admin" || userRole === "support") && (
-  <div className="border rounded-lg p-5 mb-6 bg-white shadow">
 
+{userRole === "admin" && (
+  <div className="border rounded-lg p-5 mb-6 bg-white shadow">
     <h2 className="text-2xl font-bold mb-4">
       Staff Status
     </h2>
@@ -879,9 +879,9 @@ const handleLogout = async () => {
       </div>
 
     </div>
-
   </div>
 )}
+
 <div className="border p-4 rounded mb-6 bg-white">
   <h2 className="text-xl font-bold mb-4">
     My Status
@@ -894,18 +894,18 @@ const handleLogout = async () => {
 
   {myStatus === "present" ? (
   <button
-    onClick={() => updateMyStatus("absent")}
-    className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg"
-  >
-    Absent
-  </button>
+  onClick={() => updateMyStatus("absent")}
+  className="w-auto bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg text-sm"
+>
+  Absent
+</button>
 ) : (
   <button
-    onClick={() => updateMyStatus("present")}
-    className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg"
-  >
-    Present
-  </button>
+  onClick={() => updateMyStatus("present")}
+  className="w-auto bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg text-sm"
+>
+  Present
+</button>
 )}
 
 <span className="font-medium">
@@ -970,15 +970,14 @@ const handleLogout = async () => {
   </button>
 )}
 
-<div className="absolute top-0 right-0">
+<div className="absolute top-3 right-3 z-10">
   <button
     onClick={handleLogout}
-    className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-md"
+    className="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded-lg"
   >
     Logout
   </button>
 </div>
-
       <div className="mt-4">
       
 <div>
