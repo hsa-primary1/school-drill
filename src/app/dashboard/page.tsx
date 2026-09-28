@@ -988,9 +988,9 @@ const handleLogout = async () => {
       Staff Status
     </h2>
 
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
 
-      <div className="border rounded p-4">
+      <div className="border rounded-lg p-3 sm:p-4">
         <div className="text-gray-500">
           Present
         </div>
@@ -1164,7 +1164,7 @@ const handleLogout = async () => {
         </div>
       </div>
 
-      <div className="border rounded p-4">
+      <div className="border rounded-lg p-3 sm:p-4">
         <div className="text-gray-500">
           Absent
         </div>
@@ -1174,7 +1174,7 @@ const handleLogout = async () => {
         </div>
       </div>
 
-      <div className="border rounded p-4">
+      <div className="border rounded-lg p-3 sm:p-4">
         <div className="text-gray-500">
           Total
         </div>
