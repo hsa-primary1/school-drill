@@ -35,6 +35,8 @@ const [searchTerm, setSearchTerm] = useState("");
 const [staffPresentCount, setStaffPresentCount] = useState(0);
 const [staffAbsentCount, setStaffAbsentCount] = useState(0);
 const [staffTotalCount, setStaffTotalCount] = useState(0);
+const [staffList, setStaffList] = useState<any[]>([]);
+const [staffSearch, setStaffSearch] = useState("");
 const [activeDrill, setActiveDrill] =
   useState<any>(null);
 const [drillDuration, setDrillDuration] =
@@ -427,11 +429,13 @@ useEffect(() => {
       let absent = 0;
       let total = 0;
 
-      snapshot.forEach((doc) => {
+      const staff: any[] = [];
 
-        const data = doc.data();
+      snapshot.forEach((userDoc) => {
 
-        // Sadece staff
+        const data = userDoc.data();
+
+        // Only staff
         if (
           data.role === "teacher" ||
           data.role === "support" ||
@@ -446,13 +450,20 @@ useEffect(() => {
             present++;
           }
 
+          staff.push({
+            id: userDoc.id,
+            ...data,
+          });
         }
       });
 
       setStaffPresentCount(present);
       setStaffAbsentCount(absent);
       setStaffTotalCount(total);
+
+      setStaffList(staff);
     },
+
     (error) => {
       console.error(
         "Staff status listener error:",
@@ -505,35 +516,146 @@ useEffect(() => {
   }
 };
   const handleCsvRead = () => {
-    if (!file) return;
+  if (!file) {
+    alert("Please select a CSV file.");
+    return;
+  }
 
-    Papa.parse(file, {
-      header: true,
-      complete: async (results) => {
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+
+    complete: async (results) => {
+      try {
         const rows = results.data as any[];
 
-        for (const row of rows) {
-          if (!row.StudentID) continue;
+        // Only use rows that have a StudentID
+        const validRows = rows.filter(
+          (row) => row.StudentID
+        );
 
-          await setDoc(
-            doc(db, "students", row.StudentID),
-            {
-              studentId: row.StudentID,
-              firstName: row.FName,
-              lastName: row.LName,
-              homeroom: row.Homeroom,
-              status: "present",
-              location: "Classroom",
-            }
-          );
+        if (validRows.length === 0) {
+          alert("No valid students found in the CSV file.");
+          return;
         }
 
-        alert(`${rows.length} students uploaded`);
+        console.log(
+          "New student list:",
+          validRows.length
+        );
 
-        loadStudents();
-      },
-    });
-  };
+        // =====================================
+        // 1. DELETE ALL EXISTING STUDENTS
+        // =====================================
+
+        const existingSnapshot = await getDocs(
+          collection(db, "students")
+        );
+
+        const deleteDocs = existingSnapshot.docs;
+
+        console.log(
+          "Existing students:",
+          deleteDocs.length
+        );
+
+        // Firestore allows a maximum of 500
+        // operations per batch.
+        for (let i = 0; i < deleteDocs.length; i += 500) {
+          const batch = writeBatch(db);
+
+          const chunk = deleteDocs.slice(
+            i,
+            i + 500
+          );
+
+          chunk.forEach((studentDoc) => {
+            batch.delete(studentDoc.ref);
+          });
+
+          await batch.commit();
+        }
+
+        console.log("Old students deleted.");
+
+        // =====================================
+        // 2. ADD THE NEW STUDENTS
+        // =====================================
+
+        for (
+          let i = 0;
+          i < validRows.length;
+          i += 500
+        ) {
+          const batch = writeBatch(db);
+
+          const chunk = validRows.slice(
+            i,
+            i + 500
+          );
+
+          chunk.forEach((row) => {
+            const studentRef = doc(
+              db,
+              "students",
+              String(row.StudentID).trim()
+            );
+
+            batch.set(studentRef, {
+              studentId: String(
+                row.StudentID
+              ).trim(),
+
+              firstName:
+                row.FName?.trim() || "",
+
+              lastName:
+                row.LName?.trim() || "",
+
+              homeroom:
+                row.Homeroom?.trim() || "",
+
+              status: "present",
+
+              location: "Classroom",
+            });
+          });
+
+          await batch.commit();
+        }
+
+        console.log("New students uploaded.");
+
+        alert(
+          `Student list successfully replaced.\n\n${validRows.length} students uploaded.`
+        );
+
+        await loadStudents();
+
+      } catch (error) {
+        console.error(
+          "Student upload error:",
+          error
+        );
+
+        alert(
+          "Student upload failed. Please check the console for details."
+        );
+      }
+    },
+
+    error: (error) => {
+      console.error(
+        "CSV parsing error:",
+        error
+      );
+
+      alert(
+        "Could not read the CSV file."
+      );
+    },
+  });
+};
 
 const submitAttendance = async () => {
   const user = auth.currentUser;
@@ -728,7 +850,27 @@ usersSnapshot.forEach((userDoc) => {
   }
 
 });
+// Reset all staff status after the drill
+const staffResetBatch = writeBatch(db);
 
+usersSnapshot.forEach((userDoc) => {
+  const data = userDoc.data();
+
+  // Only staff
+  if (
+    data.role === "teacher" ||
+    data.role === "support" ||
+    data.role === "admin"
+  ) {
+    staffResetBatch.update(userDoc.ref, {
+      status: "present",
+    });
+  }
+});
+
+await staffResetBatch.commit();
+
+console.log("All staff statuses reset to present.");
 
     console.log("HISTORY SAVE", {
       presentStudents,
@@ -852,7 +994,135 @@ const handleLogout = async () => {
         <div className="text-gray-500">
           Present
         </div>
+{userRole === "admin" && (
+  <div className="border rounded-lg p-5 mb-6 bg-white shadow">
 
+    <h2 className="text-2xl font-bold mb-4">
+      Staff Search
+    </h2>
+
+    <input
+      type="text"
+      placeholder="Search staff..."
+      value={staffSearch}
+      onChange={(e) =>
+        setStaffSearch(e.target.value)
+      }
+      className="border p-3 rounded w-full mb-4"
+    />
+
+    <div className="space-y-3">
+
+  {staffSearch.trim() !== "" &&
+    staffList
+      .filter((staff) => {
+
+        const name = String(
+          staff.name ||
+          staff.displayName ||
+          ""
+        );
+
+        const email = String(
+          staff.email || ""
+        );
+
+        const search =
+          staffSearch.toLowerCase().trim();
+
+        return (
+          name.toLowerCase().includes(search) ||
+          email.toLowerCase().includes(search)
+        );
+      })
+      .map((staff) => {
+
+        const name =
+          staff.name ||
+          staff.displayName ||
+          staff.email ||
+          staff.id;
+
+        const isAbsent =
+          staff.status === "absent";
+
+        return (
+          <div
+            key={staff.id}
+            className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3"
+          >
+
+            <div>
+              <div className="font-bold text-lg">
+                {name}
+              </div>
+
+              <div className="text-sm text-gray-500">
+                {staff.email || ""}
+              </div>
+
+              <div className="text-sm mt-1">
+                Role: {staff.role}
+              </div>
+
+              <div className="font-semibold mt-1">
+                Status:{" "}
+                {isAbsent
+                  ? "Absent"
+                  : "Present"}
+              </div>
+            </div>
+
+            <button
+              onClick={async () => {
+                try {
+
+                  const staffRef = doc(
+                    db,
+                    "users",
+                    staff.id
+                  );
+
+                  await updateDoc(
+                    staffRef,
+                    {
+                      status: isAbsent
+                        ? "present"
+                        : "absent",
+                    }
+                  );
+
+                } catch (error) {
+
+                  console.error(
+                    "Staff status update error:",
+                    error
+                  );
+
+                  alert(
+                    "Could not update staff status."
+                  );
+                }
+              }}
+              className={`w-full md:w-auto px-5 py-3 rounded-lg text-white ${
+                isAbsent
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-red-600 hover:bg-red-700"
+              }`}
+            >
+              {isAbsent
+                ? "Mark Present"
+                : "Mark Absent"}
+            </button>
+
+          </div>
+        );
+      })}
+
+</div>
+
+  </div>
+)}
         <div className="text-3xl font-bold text-green-600">
           {staffPresentCount}
         </div>
@@ -1241,10 +1511,6 @@ const handleLogout = async () => {
 <div className="font-semibold">
   Status: {student.status}
 </div>
-<div className="font-semibold">         
- Status: {student.status}
-        </div>
-
         <div className="flex items-center gap-2">
           <span>Location:</span>
 
