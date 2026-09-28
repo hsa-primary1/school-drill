@@ -995,12 +995,13 @@ const handleLogout = async () => {
           Present
         </div>
 {userRole === "admin" && (
-  <div className="border rounded-lg p-5 mb-6 bg-white shadow">
+  <div className="border rounded-lg p-4 sm:p-5 mb-6 bg-white shadow">
 
-    <h2 className="text-2xl font-bold mb-4">
+    <h2 className="text-xl sm:text-2xl font-bold mb-4">
       Staff Search
     </h2>
 
+    {/* Search */}
     <input
       type="text"
       placeholder="Search staff..."
@@ -1008,121 +1009,156 @@ const handleLogout = async () => {
       onChange={(e) =>
         setStaffSearch(e.target.value)
       }
-      className="border p-3 rounded w-full mb-4"
+      className="border p-3 rounded-lg w-full mb-4 text-base"
     />
 
-    <div className="space-y-3">
+    {/* Search Results */}
+    {staffSearch.trim() !== "" && (
+      <div className="space-y-3">
 
-  {staffSearch.trim() !== "" &&
-    staffList
-      .filter((staff) => {
+        {staffList
+          .filter((staff) => {
 
-        const name = String(
-          staff.name ||
-          staff.displayName ||
-          ""
-        );
+            const name = String(
+              staff.name ||
+              staff.displayName ||
+              ""
+            );
 
-        const email = String(
-          staff.email || ""
-        );
+            const email = String(
+              staff.email || ""
+            );
 
-        const search =
-          staffSearch.toLowerCase().trim();
+            const search =
+              staffSearch.toLowerCase().trim();
 
-        return (
-          name.toLowerCase().includes(search) ||
-          email.toLowerCase().includes(search)
-        );
-      })
-      .map((staff) => {
+            return (
+              name.toLowerCase().includes(search) ||
+              email.toLowerCase().includes(search)
+            );
+          })
+          .map((staff) => {
 
-        const name =
-          staff.name ||
-          staff.displayName ||
-          staff.email ||
-          staff.id;
+            const name =
+              staff.name ||
+              staff.displayName ||
+              staff.email ||
+              staff.id;
 
-        const isAbsent =
-          staff.status === "absent";
+            const isAbsent =
+              staff.status === "absent";
 
-        return (
-          <div
-            key={staff.id}
-            className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3"
-          >
+            return (
+              <div
+                key={staff.id}
+                className="
+                  border rounded-lg
+                  p-3 sm:p-4
+                  flex flex-col
+                  gap-3
+                  sm:flex-row
+                  sm:items-center
+                  sm:justify-between
+                "
+              >
 
-            <div>
-              <div className="font-bold text-lg">
-                {name}
-              </div>
+                {/* Staff Information */}
+                <div className="min-w-0">
 
-              <div className="text-sm text-gray-500">
-                {staff.email || ""}
-              </div>
+                  <div className="font-bold text-base sm:text-lg break-words">
+                    {name}
+                  </div>
 
-              <div className="text-sm mt-1">
-                Role: {staff.role}
-              </div>
+                  {staff.email && (
+                    <div className="text-sm text-gray-500 break-all mt-1">
+                      {staff.email}
+                    </div>
+                  )}
 
-              <div className="font-semibold mt-1">
-                Status:{" "}
-                {isAbsent
-                  ? "Absent"
-                  : "Present"}
-              </div>
-            </div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    Role: {staff.role}
+                  </div>
 
-            <button
-              onClick={async () => {
-                try {
+                  <div className="mt-2">
+                    <span
+                      className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        isAbsent
+                          ? "bg-red-100 text-red-700"
+                          : "bg-green-100 text-green-700"
+                      }`}
+                    >
+                      {isAbsent
+                        ? "Absent"
+                        : "Present"}
+                    </span>
+                  </div>
 
-                  const staffRef = doc(
-                    db,
-                    "users",
-                    staff.id
-                  );
+                </div>
 
-                  await updateDoc(
-                    staffRef,
-                    {
-                      status: isAbsent
-                        ? "present"
-                        : "absent",
+                {/* Status Button */}
+                <button
+                  onClick={async () => {
+                    try {
+
+                      const staffRef = doc(
+                        db,
+                        "users",
+                        staff.id
+                      );
+
+                      await updateDoc(
+                        staffRef,
+                        {
+                          status: isAbsent
+                            ? "present"
+                            : "absent",
+                        }
+                      );
+
+                    } catch (error) {
+
+                      console.error(
+                        "Staff status update error:",
+                        error
+                      );
+
+                      alert(
+                        "Could not update staff status."
+                      );
                     }
-                  );
+                  }}
+                  className={`
+                    w-full
+                    sm:w-auto
+                    px-4
+                    py-2.5
+                    rounded-lg
+                    text-sm
+                    font-semibold
+                    text-white
+                    whitespace-nowrap
+                    ${
+                      isAbsent
+                        ? "bg-green-600 hover:bg-green-700"
+                        : "bg-red-600 hover:bg-red-700"
+                    }
+                  `}
+                >
+                  {isAbsent
+                    ? "Mark Present"
+                    : "Mark Absent"}
+                </button>
 
-                } catch (error) {
+              </div>
+            );
+          })}
 
-                  console.error(
-                    "Staff status update error:",
-                    error
-                  );
-
-                  alert(
-                    "Could not update staff status."
-                  );
-                }
-              }}
-              className={`w-full md:w-auto px-5 py-3 rounded-lg text-white ${
-                isAbsent
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-red-600 hover:bg-red-700"
-              }`}
-            >
-              {isAbsent
-                ? "Mark Present"
-                : "Mark Absent"}
-            </button>
-
-          </div>
-        );
-      })}
-
-</div>
+      </div>
+    )}
 
   </div>
 )}
+
         <div className="text-3xl font-bold text-green-600">
           {staffPresentCount}
         </div>
