@@ -78,34 +78,6 @@ const [submittedClasses, setSubmittedClasses] =
       `${student.firstName} ${student.lastName}`
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
-const updateMyStatus = async (status: string) => {
-  const user = auth.currentUser;
-
-  if (!user?.email) {
-    console.log("No logged-in user");
-    return;
-  }
-
-  try {
-    const userRef = doc(
-      db,
-      "users",
-      user.email
-    );
-
-    await updateDoc(userRef, {
-      status: status,
-    });
-
-    setMyStatus(status);
-
-  } catch (error) {
-    console.error(
-      "Error updating my status:",
-      error
-    );
-  }
-};
 
     return classMatch && searchMatch;
   }
@@ -982,18 +954,54 @@ const handleLogout = async () => {
   return (
     <main className="min-h-screen p-4 md:p-10 max-w-7xl mx-auto">
 
+
+      {/* STAFF STATUS */}
 {userRole === "admin" && (
-  <div className="border rounded-lg p-5 mb-6 bg-white shadow">
-    <h2 className="text-2xl font-bold mb-4">
+  <div className="border rounded-lg p-4 sm:p-5 mb-6 bg-white shadow">
+
+    <h2 className="text-xl sm:text-2xl font-bold mb-4">
       Staff Status
     </h2>
 
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
       <div className="border rounded-lg p-3 sm:p-4">
-        <div className="text-gray-500">
+        <div className="text-gray-500 text-sm sm:text-base">
           Present
         </div>
+
+        <div className="text-2xl sm:text-3xl font-bold text-green-600">
+          {staffPresentCount}
+        </div>
+      </div>
+
+      <div className="border rounded-lg p-3 sm:p-4">
+        <div className="text-gray-500 text-sm sm:text-base">
+          Absent
+        </div>
+
+        <div className="text-2xl sm:text-3xl font-bold text-red-600">
+          {staffAbsentCount}
+        </div>
+      </div>
+
+      <div className="border rounded-lg p-3 sm:p-4">
+        <div className="text-gray-500 text-sm sm:text-base">
+          Total
+        </div>
+
+        <div className="text-2xl sm:text-3xl font-bold">
+          {staffTotalCount}
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+)}
+
+
+{/* STAFF SEARCH */}
 {userRole === "admin" && (
   <div className="border rounded-lg p-4 sm:p-5 mb-6 bg-white shadow">
 
@@ -1001,7 +1009,6 @@ const handleLogout = async () => {
       Staff Search
     </h2>
 
-    {/* Search */}
     <input
       type="text"
       placeholder="Search staff..."
@@ -1012,7 +1019,6 @@ const handleLogout = async () => {
       className="border p-3 rounded-lg w-full mb-4 text-base"
     />
 
-    {/* Search Results */}
     {staffSearch.trim() !== "" && (
       <div className="space-y-3">
 
@@ -1062,7 +1068,6 @@ const handleLogout = async () => {
                 "
               >
 
-                {/* Staff Information */}
                 <div className="min-w-0">
 
                   <div className="font-bold text-base sm:text-lg break-words">
@@ -1095,7 +1100,6 @@ const handleLogout = async () => {
 
                 </div>
 
-                {/* Status Button */}
                 <button
                   onClick={async () => {
                     try {
@@ -1158,37 +1162,7 @@ const handleLogout = async () => {
 
   </div>
 )}
-
-        <div className="text-3xl font-bold text-green-600">
-          {staffPresentCount}
-        </div>
-      </div>
-
-      <div className="border rounded-lg p-3 sm:p-4">
-        <div className="text-gray-500">
-          Absent
-        </div>
-
-        <div className="text-3xl font-bold text-red-600">
-          {staffAbsentCount}
-        </div>
-      </div>
-
-      <div className="border rounded-lg p-3 sm:p-4">
-        <div className="text-gray-500">
-          Total
-        </div>
-
-        <div className="text-3xl font-bold">
-          {staffTotalCount}
-        </div>
-      </div>
-
-    </div>
-  </div>
-)}
-
-<div className="border p-4 rounded mb-6 bg-white">
+    <div className="border p-4 rounded mb-6 bg-white">
   <h2 className="text-xl font-bold mb-4">
     My Status
   </h2>
@@ -1198,28 +1172,28 @@ const handleLogout = async () => {
       Status:
     </span>
 
-  {myStatus === "present" ? (
-  <button
-  onClick={() => updateMyStatus("absent")}
-  className="w-auto bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg text-sm"
->
-  Absent
-</button>
-) : (
-  <button
-  onClick={() => updateMyStatus("present")}
-  className="w-auto bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg text-sm"
->
-  Present
-</button>
-)}
+    {myStatus === "present" ? (
+      <button
+        onClick={() => updateMyStatus("absent")}
+        className="w-auto bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg text-sm"
+      >
+        Absent
+      </button>
+    ) : (
+      <button
+        onClick={() => updateMyStatus("present")}
+        className="w-auto bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg text-sm"
+      >
+        Present
+      </button>
+    )}
 
-<span className="font-medium">
-  {myStatus}
-</span>
+    <span className="font-medium">
+      {myStatus}
+    </span>
   </div>
 
-  <div className="relative">
+  <div className="relative mt-3">
     <span className="font-semibold">
       Location:
     </span>
@@ -1254,43 +1228,47 @@ const handleLogout = async () => {
   </div>
 </div>
 
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
-        <h1 className="text-4xl font-bold">
-          Students
-        </h1>
 
-{userRole !== "support" && (
-  <button
-    onClick={submitAttendance}
-    disabled={
-      !activeDrill ||
-      activeDrill.status !== "active"
-    }
-    className={`w-full md:w-auto px-4 py-3 rounded text-white ${
-  activeDrill?.status === "active"
-    ? "bg-green-600"
-    : "bg-gray-400"
-}`}
-  >
-    Submit Attendance
-  </button>
-)}
+<div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+  <h1 className="text-4xl font-bold">
+    Students
+  </h1>
 
-<div className="absolute top-3 right-3 z-10">
-  <button
-    onClick={handleLogout}
-    className="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded-lg"
-  >
-    Logout
-  </button>
+  {userRole !== "support" && (
+    <button
+      onClick={submitAttendance}
+      disabled={
+        !activeDrill ||
+        activeDrill.status !== "active"
+      }
+      className={`w-full md:w-auto px-4 py-3 rounded text-white ${
+        activeDrill?.status === "active"
+          ? "bg-green-600"
+          : "bg-gray-400"
+      }`}
+    >
+      Submit Attendance
+    </button>
+  )}
+
+  <div className="absolute top-3 right-3 z-10">
+    <button
+      onClick={handleLogout}
+      className="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded-lg"
+    >
+      Logout
+    </button>
+  </div>
 </div>
-      <div className="mt-4">
-      
-<div>
-  Current User: {auth.currentUser?.email}
+
+<div className="mt-4">
+  <div>
+    Current User: {auth.currentUser?.email}
+  </div>
 </div>
-      </div>
-</div>
+
+
+
 
      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-6 mb-6">
         <div className="border p-3 mb-2 rounded">
